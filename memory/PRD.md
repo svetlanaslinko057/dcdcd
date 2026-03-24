@@ -1,141 +1,150 @@
-# FOMO Crypto Intelligence Platform v2.0 - AUDIT COMPLETE
+# FOMO Crypto Intelligence Platform v2.0
 
 ## Status: ✅ FULLY OPERATIONAL ON NESTJS
 
-**All Python backend code removed. Platform runs entirely on NestJS + Puppeteer + MongoDB.**
+**Python backend completely removed. Platform runs on NestJS + Puppeteer + MongoDB.**
 
 ---
 
-## AUDIT RESULTS (2026-03-24)
+## CURRENT DATA (2026-03-24)
 
-### ✅ WORKING SYSTEMS
-
-| Module | Status | Details |
-|--------|--------|---------|
-| Intel Parsers (Dropstab) | ✅ Working | Puppeteer-based, syncs coins/investors/fundraising |
-| Intel Parsers (CryptoRank) | ✅ Working | Puppeteer-based, syncs funding/unlocks/categories |
-| News RSS Fetcher | ✅ Working | 26 sources (Tier A/B/C), 259 articles synced |
-| Knowledge Graph | ✅ Working | 147 nodes, 456 edges |
-| Market Gateway | ✅ Working | DefiLlama + Exchange APIs |
-| Sentiment Engine | ✅ Working | FOMO algorithm active |
-| Auth System | ✅ Working | Password verification |
-
-### DATA IN DATABASE
-
-| Collection | Count | Status |
+### Intel Collections
+| Collection | Count | Source |
 |------------|-------|--------|
-| Projects | 2 | ✅ |
-| Investors | 22 | ✅ |
-| Unlocks | 18 | ✅ |
-| Fundraising | 17 | ✅ |
-| Categories | 12 | ✅ |
-| Activity | 2 | ✅ |
-| News Articles | 259 | ✅ |
-| **Total** | **332** | |
+| Investors | 23 | Dropstab + CryptoRank |
+| Unlocks | 18 | CryptoRank |
+| Fundraising | 17 | Dropstab + CryptoRank |
+| Categories | 12 | CryptoRank |
+| Projects | 3 | Dropstab |
+| Activity | 3 | Dropstab |
+| **Total** | **76** | |
 
-### NEWS SOURCES BY TIER
-- **Tier A (Primary)**: 9 sources - Cointelegraph, Blockworks, The Block, etc.
-- **Tier B (Secondary)**: 12 sources - Bitcoin Magazine, Decrypt, AMBCrypto, etc.
-- **Tier C (Research)**: 5 sources - Messari, Pantera, etc.
+### News Articles
+| Tier | Sources | Articles |
+|------|---------|----------|
+| Tier A (Primary) | 9 | 175+ |
+| Tier B (Secondary) | 12 | 144+ |
+| Tier C (Research) | 5 | 21+ |
+| **Total** | **26** | **358** |
 
-### API ENDPOINTS (All Working)
-
-```
-Auth:
-  POST /api/auth/verify ✅
-
-Intel:
-  GET  /api/intel/stats ✅
-  GET  /api/intel/projects ✅
-  GET  /api/intel/investors ✅
-  GET  /api/intel/unlocks ✅
-  GET  /api/intel/fundraising ✅
-  GET  /api/intel/dropstab/scrape/* ✅
-  POST /api/intel/dropstab/sync/all ✅
-  GET  /api/intel/cryptorank/scrape/* ✅
-  POST /api/intel/cryptorank/sync/all ✅
-
-News:
-  GET  /api/news/sources ✅
-  GET  /api/news/stats ✅
-  POST /api/news/sync/all ✅
-  GET  /api/news-intelligence/sources-registry ✅
-
-Graph:
-  GET  /api/graph/stats ✅
-  GET  /api/graph/network ✅
-  GET  /api/graph/search ✅
-  POST /api/graph/rebuild ✅
-
-Market:
-  GET  /api/market/quote ✅
-  GET  /api/market/quotes ✅
-  GET  /api/market/candles ✅
-
-Sentiment:
-  GET  /api/sentiment/status ✅
-  POST /api/sentiment/analyze ✅
-```
-
-### FILES REMOVED (Python)
-
-- `/app/temp_repo/` - Cloned repository with old Python backend
-- All `.py` files except `server.py` (kept as empty wrapper)
+### Knowledge Graph
+- **Nodes: 149** (projects, funds, tokens, persons, exchanges, assets)
+- **Edges: 457** (invested_in, has_token, traded_on, works_at, etc.)
 
 ---
 
-## Quick Start Commands
+## API DOCUMENTATION
+
+### Intel Endpoints
+```
+GET  /api/intel/stats              - Collection statistics
+GET  /api/intel/projects           - All projects
+GET  /api/intel/investors          - All investors/funds
+GET  /api/intel/unlocks            - Token unlock schedule
+GET  /api/intel/fundraising        - Funding rounds
+GET  /api/intel/funds              - Investment funds
+
+--- Dropstab Scraper ---
+GET  /api/intel/dropstab/scrape/coins
+GET  /api/intel/dropstab/scrape/investors
+GET  /api/intel/dropstab/scrape/fundraising
+POST /api/intel/dropstab/sync/all
+
+--- CryptoRank Scraper ---
+GET  /api/intel/cryptorank/scrape/funding
+GET  /api/intel/cryptorank/scrape/investors
+GET  /api/intel/cryptorank/scrape/unlocks
+POST /api/intel/cryptorank/sync/all
+```
+
+### News Endpoints
+```
+GET  /api/news/sources             - 26 RSS sources
+GET  /api/news/stats               - Article statistics
+GET  /api/news/fetch/:sourceId     - Fetch from source
+POST /api/news/sync/all            - Sync all to MongoDB
+GET  /api/news-intelligence/sources-registry
+```
+
+### Graph Endpoints
+```
+GET  /api/graph/stats              - Graph statistics
+GET  /api/graph/network            - Full network
+GET  /api/graph/search?q=query     - Search nodes
+POST /api/graph/rebuild            - Rebuild graph
+```
+
+### Market Endpoints
+```
+GET  /api/market/quote?asset=BTC   - Single quote (DefiLlama)
+GET  /api/market/quotes?assets=... - Multiple quotes
+GET  /api/market/candles           - OHLCV candles
+GET  /api/market/overview          - Global market
+```
+
+### Sentiment Endpoints
+```
+GET  /api/sentiment/status         - Engine status
+POST /api/sentiment/analyze        - Analyze text
+POST /api/sentiment/analyze/batch  - Batch analysis
+```
+
+---
+
+## PARSER HIERARCHY
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                      FOMO PARSER STACK                         │
+├────────────────────────────────────────────────────────────────┤
+│  TIER 1: Analytics Parsers (Puppeteer/SSR)                     │
+│  ├── Dropstab   → coins, investors, fundraising                │
+│  └── CryptoRank → funding, unlocks, categories                 │
+├────────────────────────────────────────────────────────────────┤
+│  TIER 2: News Parsers (RSS/XML)                                │
+│  └── 26 sources → Tier A/B/C prioritization                    │
+├────────────────────────────────────────────────────────────────┤
+│  TIER 3: Market Providers (REST API)                           │
+│  ├── DefiLlama   → quotes, TVL, overview ✅                    │
+│  ├── Binance     → orderbook, trades ⚠️ (geo-blocked)         │
+│  └── Bybit       → candles ⚠️ (geo-blocked)                   │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## QUICK START
 
 ```bash
 # Start NestJS backend
 cd /app/backend && PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium node dist/main.js &
 
-# Sync all data
+# Full data sync
 curl -X POST http://localhost:8001/api/intel/dropstab/sync/all
 curl -X POST http://localhost:8001/api/intel/cryptorank/sync/all
 curl -X POST http://localhost:8001/api/news/sync/all
 curl -X POST http://localhost:8001/api/graph/rebuild
 ```
 
-## Access
-
+## ACCESS
 - **URL**: https://data-parser-boot.preview.emergentagent.com
 - **Password**: `fomo2024`
 
-## Architecture
+---
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FOMO Platform (NestJS v10)                    │
-├─────────────────────────────────────────────────────────────────┤
-│  React Frontend (port 3000)                                      │
-│  └── Dashboard, Graph Visualization, News Sources, Discovery    │
-├─────────────────────────────────────────────────────────────────┤
-│  NestJS Backend (port 8001)                                      │
-│  ├── IntelModule (Dropstab + CryptoRank scrapers)               │
-│  ├── NewsModule (26 RSS sources)                                 │
-│  ├── KnowledgeGraphModule (147 nodes, 456 edges)                │
-│  ├── SentimentModule (FOMO algorithm)                           │
-│  └── MarketGatewayModule (DefiLlama + Exchanges)                │
-├─────────────────────────────────────────────────────────────────┤
-│  MongoDB (port 27017)                                            │
-│  └── intel_*, news_*, graph_*, sentiment_* collections          │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Next Steps (Backlog)
+## BACKLOG
 
 ### P1 - High Priority
-- [ ] Add scheduler for automatic data sync (cron jobs)
-- [ ] WebSocket real-time updates
-- [ ] Fix Intelligence Engines display (Correlation, Trust, Query)
+- [ ] Add @nestjs/schedule for auto-sync (cron jobs)
+- [ ] Add CoinGecko/CMC API for market data (bypass geo-blocks)
+- [ ] Fix Intelligence Engines (Correlation, Trust, Query)
 
-### P2 - Medium Priority  
+### P2 - Medium Priority
+- [ ] WebSocket real-time updates
 - [ ] Telegram bot for alerts
-- [ ] LLM-powered sentiment analysis
 - [ ] Historical data tracking
 
 ### P3 - Nice to Have
-- [ ] More exchange integrations
-- [ ] Advanced filtering on frontend
+- [ ] More exchange adapters
 - [ ] Export functionality
+- [ ] Advanced filtering
