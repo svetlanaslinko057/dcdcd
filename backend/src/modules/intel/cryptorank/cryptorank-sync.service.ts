@@ -120,7 +120,7 @@ export class CryptoRankSyncService {
   }
 
   async syncAll(): Promise<any> {
-    console.log('[CryptoRankSync] Starting full sync...');
+    console.log('[CryptoRankSync] Starting FULL sync (all pages)...');
 
     const results: any = {
       source: 'cryptorank',
@@ -129,10 +129,11 @@ export class CryptoRankSyncService {
       syncs: {},
     };
 
+    // FULL SYNC - парсим ВСЕ страницы
     const tasks = [
-      ['funding', () => this.syncFunding(1)],
-      ['investors', () => this.syncInvestors()],
-      ['unlocks', () => this.syncUnlocks()],
+      ['funding', () => this.syncFunding(100)],  // 100 страниц = ~2000 funding rounds
+      ['investors', () => this.syncInvestorsFull()],
+      ['unlocks', () => this.syncUnlocksFull()],
       ['categories', () => this.syncCategories()],
       ['launchpads', () => this.syncLaunchpads()],
       ['market', () => this.syncMarket()],
@@ -149,6 +150,42 @@ export class CryptoRankSyncService {
 
     console.log('[CryptoRankSync] Full sync complete');
     return results;
+  }
+
+  async syncInvestorsFull(): Promise<any> {
+    console.log('[CryptoRankSync] Syncing ALL investors (full)...');
+
+    const investors = await this.scraper.scrapeInvestorsFull();
+    if (!investors.length) {
+      return { total: 0, changed: 0, note: 'No data from scraper' };
+    }
+
+    let changed = 0;
+    for (const doc of investors) {
+      const result = await this.upsertWithDiff(this.investorsModel, doc);
+      if (result.changed) changed++;
+    }
+
+    console.log(`[CryptoRankSync] Investors: ${investors.length} scraped, ${changed} changed`);
+    return { total: investors.length, changed };
+  }
+
+  async syncUnlocksFull(): Promise<any> {
+    console.log('[CryptoRankSync] Syncing ALL unlocks (full)...');
+
+    const unlocks = await this.scraper.scrapeUnlocksFull();
+    if (!unlocks.length) {
+      return { total: 0, changed: 0, note: 'No data from scraper' };
+    }
+
+    let changed = 0;
+    for (const doc of unlocks) {
+      const result = await this.upsertWithDiff(this.unlocksModel, doc);
+      if (result.changed) changed++;
+    }
+
+    console.log(`[CryptoRankSync] Unlocks: ${unlocks.length} scraped, ${changed} changed`);
+    return { total: unlocks.length, changed };
   }
 
   private async upsertWithDiff(model: Model<any>, doc: any): Promise<{ changed: boolean }> {

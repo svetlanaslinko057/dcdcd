@@ -152,6 +152,29 @@ export class BrowserService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  async fetchHtml(url: string): Promise<string | null> {
+    const page = await this.getPage();
+    
+    try {
+      await this.rateLimit();
+      
+      await page.goto(url, {
+        waitUntil: 'networkidle2',
+        timeout: 30000,
+      });
+      
+      const html = await page.content();
+      console.log(`[BrowserService] Fetched HTML from ${url} (${html.length} bytes)`);
+      
+      return html;
+    } catch (error) {
+      console.error(`[BrowserService] Error fetching HTML from ${url}:`, error.message);
+      return null;
+    } finally {
+      await this.releasePage(page);
+    }
+  }
+
   async closeBrowser(): Promise<void> {
     for (const page of this.pagePool) {
       await page.close();

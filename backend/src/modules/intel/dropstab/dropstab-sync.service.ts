@@ -171,7 +171,7 @@ export class DropstabSyncService {
   }
 
   async syncAll(): Promise<any> {
-    console.log('[DropstabSync] Starting full sync...');
+    console.log('[DropstabSync] Starting FULL sync (all pages)...');
 
     const results: any = {
       source: 'dropstab',
@@ -180,14 +180,15 @@ export class DropstabSyncService {
       syncs: {},
     };
 
+    // FULL SYNC - парсим ВСЕ страницы
     const tasks = [
-      ['markets', () => this.syncMarkets(100)],
-      ['unlocks', () => this.syncUnlocks()],
+      ['markets', () => this.syncMarketsFull(50)],  // 50 страниц = 5000 монет
+      ['unlocks', () => this.syncUnlocks(1000)],
       ['categories', () => this.syncCategories()],
       ['trending', () => this.syncTrending()],
-      ['investors', () => this.syncInvestors()],
-      ['fundraising', () => this.syncFundraising()],
-      ['listings', () => this.syncListings(100)],
+      ['investors', () => this.syncInvestorsFull()],
+      ['fundraising', () => this.syncFundraisingFull()],
+      ['listings', () => this.syncListings(500)],
     ] as const;
 
     for (const [name, fn] of tasks) {
@@ -201,6 +202,16 @@ export class DropstabSyncService {
 
     console.log('[DropstabSync] Full sync complete');
     return results;
+  }
+
+  async syncInvestorsFull(): Promise<any> {
+    console.log('[DropstabSync] Syncing ALL investors (full)...');
+    return this.syncInvestors();
+  }
+
+  async syncFundraisingFull(): Promise<any> {
+    console.log('[DropstabSync] Syncing ALL fundraising (full)...');
+    return this.syncFundraising();
   }
 
   // ═══════════════════════════════════════════════════════════════

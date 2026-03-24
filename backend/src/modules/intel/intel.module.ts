@@ -4,6 +4,9 @@ import { CommonModule } from '../../common/common.module';
 import { IntelController } from './intel.controller';
 import { DropstabModule } from './dropstab/dropstab.module';
 import { CryptoRankModule } from './cryptorank/cryptorank.module';
+import { IcoDropsScraperService } from './icodrops/icodrops-scraper.service';
+import { IcoDropsSyncService } from './icodrops/icodrops-sync.service';
+import { IcoDropsController } from './icodrops/icodrops.controller';
 import {
   ProjectSchema,
   InvestorSchema,
@@ -29,10 +32,12 @@ import {
       { name: 'intel_persons', schema: PersonSchema },
       { name: 'intel_launchpads', schema: {} },
       { name: 'intel_market', schema: {} },
+      { name: 'intel_icos', schema: {} },
     ]),
     DropstabModule,
     CryptoRankModule,
   ],
-  controllers: [IntelController],
+  controllers: [IntelController, IcoDropsController],
+  providers: [IcoDropsScraperService, IcoDropsSyncService],
 })
 export class IntelModule {}

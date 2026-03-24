@@ -318,15 +318,18 @@ export class CryptoRankScraperService {
 
   async scrapeAll(): Promise<any> {
     const start = Date.now();
-    console.log('[CryptoRankScraper] Starting full scrape...');
+    console.log('[CryptoRankScraper] Starting FULL scrape (all pages)...');
 
-    const funding = await this.scrapeFunding(1);
+    // Парсим ВСЕ страницы funding rounds
+    const funding = await this.scrapeFunding(50);  // 50 страниц
     await this.sleep(2000);
 
-    const investors = await this.scrapeInvestors();
+    // Парсим ВСЕ инвесторы
+    const investors = await this.scrapeInvestorsFull();
     await this.sleep(2000);
 
-    const unlocks = await this.scrapeUnlocks();
+    // Парсим ВСЕ unlocks
+    const unlocks = await this.scrapeUnlocksFull();
     await this.sleep(2000);
 
     const categories = await this.scrapeCategories();
@@ -363,6 +366,78 @@ export class CryptoRankScraperService {
 
     console.log(`[CryptoRankScraper] Full scrape complete in ${elapsed.toFixed(1)}s:`, result.summary);
     return result;
+  }
+
+  async scrapeInvestorsFull(): Promise<CryptoRankInvestor[]> {
+    console.log('[CryptoRankScraper] Scraping ALL investors (multiple pages)...');
+    const allInvestors: CryptoRankInvestor[] = [];
+
+    for (let page = 1; page <= 30; page++) {
+      const url = `${BASE_URL}/funds?page=${page}`;
+
+      try {
+        const nextData = await this.browserService.extractNextData(url);
+        if (!nextData) break;
+
+        const investors = this.findDataset(nextData, [
+          'slug', 'name', 'count', 'totalInvestments', 'tier', 'logo'
+        ]);
+
+        if (investors && investors.length > 0) {
+          const parsed = investors.map((item: any) => this.parseInvestor(item)).filter(Boolean);
+          allInvestors.push(...parsed);
+          console.log(`[CryptoRankScraper] Page ${page}: found ${parsed.length} investors`);
+
+          if (investors.length < 20) break;
+        } else {
+          break;
+        }
+      } catch (error) {
+        console.error(`[CryptoRankScraper] Error on page ${page}:`, error.message);
+        break;
+      }
+
+      await this.sleep(2000 + Math.random() * 1000);
+    }
+
+    console.log(`[CryptoRankScraper] Total investors: ${allInvestors.length}`);
+    return allInvestors;
+  }
+
+  async scrapeUnlocksFull(): Promise<CryptoRankUnlock[]> {
+    console.log('[CryptoRankScraper] Scraping ALL unlocks (multiple pages)...');
+    const allUnlocks: CryptoRankUnlock[] = [];
+
+    for (let page = 1; page <= 20; page++) {
+      const url = `${BASE_URL}/token-unlock?page=${page}`;
+
+      try {
+        const nextData = await this.browserService.extractNextData(url);
+        if (!nextData) break;
+
+        const unlocks = this.findDataset(nextData, [
+          'unlockUsd', 'unlockDate', 'tokensPercent', 'symbol', 'nextUnlock'
+        ]);
+
+        if (unlocks && unlocks.length > 0) {
+          const parsed = unlocks.map((item: any) => this.parseUnlock(item)).filter(Boolean);
+          allUnlocks.push(...parsed);
+          console.log(`[CryptoRankScraper] Page ${page}: found ${parsed.length} unlocks`);
+
+          if (unlocks.length < 20) break;
+        } else {
+          break;
+        }
+      } catch (error) {
+        console.error(`[CryptoRankScraper] Error on page ${page}:`, error.message);
+        break;
+      }
+
+      await this.sleep(2000 + Math.random() * 1000);
+    }
+
+    console.log(`[CryptoRankScraper] Total unlocks: ${allUnlocks.length}`);
+    return allUnlocks;
   }
 
   // ═══════════════════════════════════════════════════════════════
