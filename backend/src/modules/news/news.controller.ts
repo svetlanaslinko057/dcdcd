@@ -94,15 +94,13 @@ export class NewsController {
 
   // ═══════════════════════════════════════════════════════════════
   // SYNC ENDPOINTS (fetch + store to DB)
+  // Note: Specific routes must come BEFORE parameterized routes
   // ═══════════════════════════════════════════════════════════════
 
-  @Post('sync/:sourceId')
-  async syncSource(
-    @Param('sourceId') sourceId: string,
-    @Query('limit') limit?: string,
-  ) {
-    const result = await this.sync.syncSource(sourceId, parseInt(limit || '30', 10));
-    return { ok: true, ...result };
+  @Post('sync/all')
+  async syncAll(@Query('limit') limit?: string) {
+    const result = await this.sync.syncAll(parseInt(limit || '20', 10));
+    return { ok: true, source: 'all', ...result };
   }
 
   @Post('sync/tier/a')
@@ -123,9 +121,12 @@ export class NewsController {
     return { ok: true, ...result };
   }
 
-  @Post('sync/all')
-  async syncAll(@Query('limit') limit?: string) {
-    const result = await this.sync.syncAll(parseInt(limit || '20', 10));
+  @Post('sync/source/:sourceId')
+  async syncSource(
+    @Param('sourceId') sourceId: string,
+    @Query('limit') limit?: string,
+  ) {
+    const result = await this.sync.syncSource(sourceId, parseInt(limit || '30', 10));
     return { ok: true, ...result };
   }
 }
